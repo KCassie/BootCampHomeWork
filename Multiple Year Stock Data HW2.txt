@@ -1,0 +1,78 @@
+Sub Total_Volume_Summary()
+
+'Loop through all sheets:
+Dim ws As Worksheet
+
+    For Each ws In Worksheets
+
+'Declare all variants:
+Dim data As Variant
+Dim i As Long
+Dim countDict As Variant
+Dim ticker As Variant
+Dim volume As Variant
+
+'Create Scripting.Dictionary
+    Set countDict = CreateObject("Scripting.Dictionary")
+  
+'Put "ws" in front of "UsedRange" to indicate UsedRange should be applied to all worksheets. UsedRange finds the first cell with data in the left most column and the last cell with data in the right most column.
+    data = ws.UsedRange
+
+    'Populate the dictionary: key = ticker / Item = count
+        For i = LBound(data, 1) To UBound(data, 1)
+    
+            ticker = data(i, 1)
+            volume = data(i, 7)
+        
+'If there is a duplicate in the ticker column then,
+    If countDict.exists(ticker) Then
+      
+      'Add to the total
+        countDict(ticker) = countDict(ticker) + volume
+      
+            Else
+    
+             'first time we find that ticker, create it
+                countDict(ticker) = volume
+      
+    End If
+    
+        Next i
+
+  'Copy dictionary into an array
+    ReDim data(1 To countDict.Count, 1 To 2) As Variant
+
+    Dim d As Variant
+  
+        i = 1
+  
+            For Each d In countDict
+  
+                data(i, 1) = d
+                data(i, 2) = countDict(d)
+            
+        i = i + 1
+    
+            Next d
+
+'Puts the result back in the sheet in column I, including headers
+    With ws
+    
+    'There must be "." in front of Range in order for "ws" to apply.
+    .Range("I1").Resize(UBound(data, 1), UBound(data, 2)) = data
+    
+        End With
+  
+  With ws
+  
+    'Change column headers for columns "I" and "J" for all worksheets (don't for the "." in front of cells)
+        .Cells(1, 9) = "Ticker"
+        .Cells(1, 10) = "Total Stock Volume"
+ 
+                End With
+
+        Next ws
+
+  
+End Sub
+
